@@ -49,12 +49,12 @@ for x in train dev test; do
 done
 
 # subset the training data for fast startup
-utils/subset_data_dir.sh data/train 30000 data/train_30k
 utils/subset_data_dir.sh data/train 100000 data/train_100k
+utils/subset_data_dir.sh data/train 300000 data/train_300k
 
 # mono training
 steps/train_mono.sh --cmd "$train_cmd" --nj $nj \
-  data/train_30k data/lang exp/mono || exit 1;
+  data/train_100k data/lang exp/mono || exit 1;
 
 # mono decoding
 utils/mkgraph.sh data/lang_test exp/mono exp/mono/graph || exit 1;
@@ -65,11 +65,11 @@ steps/decode.sh --cmd "$decode_cmd" --config conf/decode.config --nj $nj \
 
 # mono alignment
 steps/align_si.sh --cmd "$train_cmd" --nj $nj \
-  data/train_100k data/lang exp/mono exp/mono_ali || exit 1;
+  data/train_300k data/lang exp/mono exp/mono_ali || exit 1;
 
 # tri1 training
 steps/train_deltas.sh --cmd "$train_cmd" \
- 4000 32000 data/train_100k data/lang exp/mono_ali exp/tri1 || exit 1;
+ 4000 32000 data/train_300k data/lang exp/mono_ali exp/tri1 || exit 1;
 
 # tri1 decoding
 utils/mkgraph.sh data/lang_test exp/tri1 exp/tri1/graph || exit 1;
