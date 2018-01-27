@@ -37,7 +37,6 @@ local/aishell_train_lms.sh || exit 1;
 utils/format_lm.sh data/lang data/local/lm/3gram-mincount/lm_unpruned.gz \
     data/local/dict/lexicon.txt data/lang_test || exit 1;
 
-
 # Now make MFCC plus pitch features.
 # mfccdir should be some place with a largish disk where you
 # want to store MFCC features.
@@ -49,74 +48,72 @@ for x in train dev test; do
   utils/fix_data_dir.sh data/$x || exit 1;
 done
 
-#subset the traindata for fast
+# subset the training data for fast startup
 utils/subset_data_dir.sh data/train 30000 data/train_30k
 utils/subset_data_dir.sh data/train 100000 data/train_100k
 
-
-#Monophone train
+# mono training
 steps/train_mono.sh --cmd "$train_cmd" --nj $nj \
   data/train_30k data/lang exp/mono || exit 1;
 
-# Monophone decoding
+# mono decoding
 utils/mkgraph.sh data/lang_test exp/mono exp/mono/graph || exit 1;
 steps/decode.sh --cmd "$decode_cmd" --config conf/decode.config --nj $nj \
   exp/mono/graph data/dev exp/mono/decode_dev
 steps/decode.sh --cmd "$decode_cmd" --config conf/decode.config --nj $nj \
   exp/mono/graph data/test exp/mono/decode_test
 
-# Get alignments from monophone system.
+# mono alignment
 steps/align_si.sh --cmd "$train_cmd" --nj $nj \
   data/train_100k data/lang exp/mono exp/mono_ali || exit 1;
 
-# train tri1 [first triphone pass]
+# tri1 training
 steps/train_deltas.sh --cmd "$train_cmd" \
- 2500 20000 data/train_100k data/lang exp/mono_ali exp/tri1 || exit 1;
+ 4000 32000 data/train_100k data/lang exp/mono_ali exp/tri1 || exit 1;
 
-# decode tri1
+# tri1 decoding
 utils/mkgraph.sh data/lang_test exp/tri1 exp/tri1/graph || exit 1;
 steps/decode.sh --cmd "$decode_cmd" --config conf/decode.config --nj ${nj} \
   exp/tri1/graph data/dev exp/tri1/decode_dev
 steps/decode.sh --cmd "$decode_cmd" --config conf/decode.config --nj ${nj} \
   exp/tri1/graph data/test exp/tri1/decode_test
 
-# align tri1
+# tri1 alignment
 steps/align_si.sh --cmd "$train_cmd" --nj $nj \
   data/train data/lang exp/tri1 exp/tri1_ali || exit 1;
 
-# train tri2 [delta+delta-deltas]
+# tri2 training
 steps/train_deltas.sh --cmd "$train_cmd" \
- 5000 40000 data/train data/lang exp/tri1_ali exp/tri2 || exit 1;
+ 7000 56000 data/train data/lang exp/tri1_ali exp/tri2 || exit 1;
 
-# decode tri2
+# tri2 decoding
 utils/mkgraph.sh data/lang_test exp/tri2 exp/tri2/graph
 steps/decode.sh --cmd "$decode_cmd" --config conf/decode.config --nj ${nj} \
   exp/tri2/graph data/dev exp/tri2/decode_dev
 steps/decode.sh --cmd "$decode_cmd" --config conf/decode.config --nj ${nj} \
   exp/tri2/graph data/test exp/tri2/decode_test
 
-# train and decode tri2b [LDA+MLLT]
+# tri2 alignment
 steps/align_si.sh --cmd "$train_cmd" --nj $nj \
   data/train data/lang exp/tri2 exp/tri2_ali || exit 1;
 
-# Train tri3a, which is LDA+MLLT,
+# tri3 training [LDA+MLLT]
 steps/train_lda_mllt.sh --cmd "$train_cmd" \
- 7500 60000 data/train data/lang exp/tri2_ali exp/tri3 || exit 1;
+ 10000 80000 data/train data/lang exp/tri2_ali exp/tri3 || exit 1;
 
+# tri3 decoding
 utils/mkgraph.sh data/lang_test exp/tri3 exp/tri3/graph || exit 1;
 steps/decode.sh --cmd "$decode_cmd" --nj ${nj} --config conf/decode.config \
   exp/tri3/graph data/dev exp/tri3/decode_dev
 steps/decode.sh --cmd "$decode_cmd" --nj ${nj} --config conf/decode.config \
   exp/tri3/graph data/test exp/tri3/decode_test
 
-# From now, we start building a more serious system (with SAT), and we'll
-# do the alignment with fMLLR.
-
-steps/align_fmllr.sh --cmd "$train_cmd" --nj $nj \
+# tri3 alignment
+steps/align_si.sh --cmd "$train_cmd" --nj $nj \
   data/train data/lang exp/tri3 exp/tri3_ali || exit 1;
 
-steps/align_fmllr.sh --cmd "$train_cmd" --nj ${nj} \
-  data/dev data/lang exp/tri3 exp/tri3_ali_cv
+steps/align_si.sh --cmd "$train_cmd" --nj ${nj} \
+  data/dev data/lang exp/tri3 exp/tri3_ali_cv || exit 1;
 
 # nnet3
 local/nnet3/run_tdnn.sh
