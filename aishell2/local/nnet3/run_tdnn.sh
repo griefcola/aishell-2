@@ -42,7 +42,7 @@ EOF
 fi
 
 dir=exp/nnet3/tdnn_sp${affix:+_$affix}
-gmm_dir=exp/tri4
+gmm_dir=exp/tri3
 test_sets="dev test"
 train_set=train
 ali_dir=${gmm_dir}_ali

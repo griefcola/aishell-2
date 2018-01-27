@@ -21,7 +21,7 @@ nj=20
 decode_nj=20
 min_seg_len=1.55
 train_set=train
-gmm=tri4  # this is the source gmm-dir for the data-type of interest; it
+gmm=tri3  # this is the source gmm-dir for the data-type of interest; it
                   # should have alignments for the specified training data.
 
 # Options which are not passed through to run_ivector_common.sh

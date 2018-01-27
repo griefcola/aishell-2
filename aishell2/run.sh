@@ -115,21 +115,8 @@ steps/decode.sh --cmd "$decode_cmd" --nj ${nj} --config conf/decode.config \
 steps/align_fmllr.sh --cmd "$train_cmd" --nj $nj \
   data/train data/lang exp/tri3 exp/tri3_ali || exit 1;
 
-steps/train_sat.sh --cmd "$train_cmd" \
-  10000 100000 data/train data/lang exp/tri3_ali exp/tri4 || exit 1;
-
-
-utils/mkgraph.sh data/lang_test exp/tri4 exp/tri4/graph
-steps/decode_fmllr.sh --cmd "$decode_cmd" --nj ${nj} --config conf/decode.config \
-  exp/tri4/graph data/dev exp/tri4/decode_dev
-steps/decode_fmllr.sh --cmd "$decode_cmd" --nj ${nj} --config conf/decode.config \
-  exp/tri4/graph data/test exp/tri4/decode_test
-#
 steps/align_fmllr.sh --cmd "$train_cmd" --nj ${nj} \
-  data/train data/lang exp/tri4 exp/tri4_ali
-
-steps/align_fmllr.sh --cmd "$train_cmd" --nj ${nj} \
-  data/dev data/lang exp/tri4 exp/tri4_ali_cv
+  data/dev data/lang exp/tri3 exp/tri3_ali_cv
 
 # nnet3
 local/nnet3/run_tdnn.sh

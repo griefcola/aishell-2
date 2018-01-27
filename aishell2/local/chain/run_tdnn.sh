@@ -49,7 +49,7 @@ fi
 dir=${dir}${affix:+_$affix}_sp
 train_set=train
 test_sets="dev test"
-ali_dir=exp/tri4_ali
+ali_dir=exp/tri3_ali
 treedir=exp/chain/tri4_cd_tree_sp
 lang=data/lang_chain
 
@@ -68,7 +68,7 @@ if [ $stage -le 7 ]; then
   # use the same num-jobs as the alignments
   nj=$(cat $ali_dir/num_jobs) || exit 1;
   steps/align_fmllr_lats.sh --nj $nj --cmd "$train_cmd" data/$train_set \
-    data/lang exp/tri4 exp/tri4_sp_lats
+    data/lang exp/tri3 exp/tri4_sp_lats
   rm exp/tri4_sp_lats/fsts.*.gz # save space
 fi
 

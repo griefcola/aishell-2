@@ -22,7 +22,7 @@ chunk_right_context=0
 label_delay=5
 xent_regularize=0.1
 train_set=train
-gmm=tri4  # the gmm for the target data
+gmm=tri3  # the gmm for the target data
 # decode options
 extra_left_context=50
 extra_right_context=0
